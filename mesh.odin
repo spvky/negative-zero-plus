@@ -5,7 +5,7 @@ import l "core:math/linalg"
 import "core:slice"
 import rl "vendor:raylib"
 
-Mesh_Collision_Attr :: struct {
+Mesh_Collision_Data :: struct {
 	vertices:       [dynamic]Vec3,
 	axes:           [dynamic]Vec3,
 	axis_intervals: [dynamic]Interval,
@@ -16,7 +16,7 @@ parse_collision_data :: proc(
 	model: ^rl.Model,
 	allocator := context.allocator,
 ) -> (
-	collision_atributes: [dynamic]Mesh_Collision_Attr,
+	collision_data: [dynamic]Mesh_Collision_Data,
 ) {
 	project_vertices_onto_axis :: #force_inline proc(
 		axis: Vec3,
@@ -38,12 +38,7 @@ parse_collision_data :: proc(
 		return
 	}
 
-	collision_atributes = make(
-		[dynamic]Mesh_Collision_Attr,
-		0,
-		model.meshCount,
-		allocator = allocator,
-	)
+	collision_data = make([dynamic]Mesh_Collision_Data, 0, model.meshCount, allocator = allocator)
 	model_loop: for i in 0 ..< model.meshCount {
 		m := model.meshes[i]
 
@@ -97,13 +92,13 @@ parse_collision_data :: proc(
 		}
 		// --------------------------------------
 
-		col_attr := Mesh_Collision_Attr {
+		mesh_data := Mesh_Collision_Data {
 			vertices       = vertices,
 			axes           = mesh_axes,
 			axis_intervals = axis_intervals,
 			center         = center,
 		}
-		append(&collision_atributes, col_attr)
+		append(&collision_data, mesh_data)
 	}
 	return
 }

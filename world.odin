@@ -8,7 +8,7 @@ world: World
 World :: struct {
 	player:          Player,
 	camera:          Camera,
-	level_collision: [dynamic]Mesh_Collision_Attr,
+	level_collision: [dynamic]Mesh_Collision_Data,
 }
 
 init_world :: proc() {
