@@ -14,11 +14,10 @@ Mesh_Collision_Attr :: struct {
 
 parse_collision_data :: proc(
 	model: ^rl.Model,
+	allocator := context.allocator,
 ) -> (
 	collision_atributes: [dynamic]Mesh_Collision_Attr,
-	allocator := context.allocator,
 ) {
-
 	project_vertices_onto_axis :: #force_inline proc(
 		axis: Vec3,
 		vertices: []Vec3,
