@@ -15,6 +15,7 @@ should_close :: proc() -> bool {
 update :: proc() {
 	gameplay_loop()
 	render()
+	free_all(context.temp_allocator)
 }
 
 exit :: proc() {
@@ -24,4 +25,5 @@ exit :: proc() {
 
 gameplay_loop :: proc() {
 	update_camera_position()
+	update_player()
 }

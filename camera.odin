@@ -28,7 +28,7 @@ make_camera :: proc() -> Camera {
 		fovy = 90,
 		position = {0, 0, 0},
 		up = {0, 1, 0},
-		target_offset = {0, 10, 10},
+		target_offset = {0, 7, 5},
 		smoothing = 10,
 	}
 }
