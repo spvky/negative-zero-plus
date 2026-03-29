@@ -19,5 +19,6 @@ render_gameplay_scene :: proc() {
 	rl.BeginMode3D(world.camera.raw)
 	rl.DrawModel(assets.gym, {0, 0, 0}, 1, rl.ORANGE)
 	draw_player()
+	rl.DrawSphere(cast_point, 0.5, rl.BLACK)
 	rl.EndMode3D()
 }

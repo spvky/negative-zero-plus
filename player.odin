@@ -6,8 +6,9 @@ import l "core:math/linalg"
 import rl "vendor:raylib"
 
 P_SPEED: f32 : 3
-P_DECEL: f32 : 0.8
+P_DECEL: f32 : 0.999
 PI2: f32 : math.PI * 2
+cast_point: Vec3
 
 Player :: struct {
 	translation:    Vec3,
@@ -19,6 +20,7 @@ Player :: struct {
 	forward:        Vec3,
 	angle_to_delta: f32,
 	right:          Vec3,
+	slope:          f32,
 	flags:          bit_set[Player_Flag],
 }
 
@@ -93,7 +95,7 @@ apply_player_gravity :: proc(player: ^Player, delta: f32) {
 
 set_player_velocity :: proc(player: ^Player) {
 	if player.move_delta != VEC0 {
-		forward_velo := player.forward * P_SPEED
+		forward_velo := player.forward * P_SPEED + (P_SPEED * 0.75 * player.slope * player.forward)
 		player.velocity.x = forward_velo.x
 		player.velocity.z = forward_velo.z
 	} else {
@@ -112,6 +114,7 @@ player_level_collision :: proc(player: ^Player) {
 		direction = -VECY,
 	}
 	on_ground: bool
+	hit_normal := VECY
 
 	for collision_data in world.level_collision {
 		collides, collision := sphere_level_collision_test(
@@ -123,11 +126,24 @@ player_level_collision :: proc(player: ^Player) {
 		}
 
 		// Ground cast
-		// ground_ray_collision := rl.GetRayCollisionMesh(
-		// 	ground_ray,
-		// 	collision_data.mesh_ptr^,
-		// 	rl.MatrixIdentity(),
-		// )
+		ground_ray_collision := rl.GetRayCollisionMesh(
+			ground_ray,
+			assets.gym.meshes[collision_data.mesh_idx],
+			rl.Matrix(1),
+		)
+		if ground_ray_collision.hit {
+			if ground_ray_collision.distance < 0.7 {
+				on_ground = true
+				hit_normal = ground_ray_collision.normal
+				cast_point = ground_ray_collision.point
+			}
+		}
+	}
+	if on_ground {
+		add_player_flag(.Grounded)
+		player.slope = l.angle_between(hit_normal, VECY)
+	} else {
+		remove_player_flag(.Grounded)
 	}
 }
 

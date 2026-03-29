@@ -6,7 +6,7 @@ import "core:slice"
 import rl "vendor:raylib"
 
 Mesh_Collision_Data :: struct {
-	mesh_ptr:       ^rl.Mesh,
+	mesh_idx:       int,
 	vertices:       [dynamic]Vec3,
 	axes:           [dynamic]Vec3,
 	axis_intervals: [dynamic]Interval,
@@ -95,7 +95,7 @@ parse_collision_data :: proc(
 		// --------------------------------------
 
 		mesh_data := Mesh_Collision_Data {
-			mesh_ptr       = &m,
+			mesh_idx       = int(i),
 			vertices       = vertices,
 			axes           = mesh_axes,
 			axis_intervals = axis_intervals,
