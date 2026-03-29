@@ -3,7 +3,7 @@ package main
 import "core:math"
 
 // How far can the player jump horizontally (in pixels)
-JUMP_DISTANCE: f32 : 6
+JUMP_DISTANCE: f32 : 4
 // How long to reach jump peak (in seconds)
 TIME_TO_PEAK: f32 : 0.3
 // How long to reach height we jumped from (in seconds)
@@ -12,13 +12,13 @@ TIME_TO_DESCENT: f32 : 0.28
 JUMP_HEIGHT: f32 : 3.5
 
 run_speed := calculate_ground_speed()
-jump_speed := calulate_jump_speed()
+jump_speed := calculate_jump_speed()
 rising_gravity := calculate_rising_gravity()
 falling_gravity := calculate_falling_gravity()
 
 // Jumping
-calulate_jump_speed :: proc "c" () -> f32 {
-	return (-2 * JUMP_HEIGHT) / TIME_TO_PEAK
+calculate_jump_speed :: proc "c" () -> f32 {
+	return (2 * JUMP_HEIGHT) / TIME_TO_PEAK
 }
 
 calculate_rising_gravity :: proc "c" () -> f32 {

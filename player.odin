@@ -5,8 +5,8 @@ import "core:math"
 import l "core:math/linalg"
 import rl "vendor:raylib"
 
-P_SPEED: f32 : 3
-P_DECEL: f32 : 0.999
+P_SPEED := calculate_ground_speed()
+P_DECEL: f32 : 0.997
 PI2: f32 : math.PI * 2
 cast_point: Vec3
 
@@ -65,6 +65,15 @@ update_player :: proc() {
 	apply_player_gravity(player, delta)
 	apply_player_velocity(player, delta)
 	player_level_collision(player)
+	player_jump(player)
+}
+
+player_jump :: proc(player: ^Player) {
+	if rl.IsKeyPressed(.SPACE) {
+		if .Grounded in player.flags {
+			player.velocity.y = calculate_jump_speed()
+		}
+	}
 }
 
 set_player_move_delta :: proc() {
@@ -132,7 +141,7 @@ player_level_collision :: proc(player: ^Player) {
 			rl.Matrix(1),
 		)
 		if ground_ray_collision.hit {
-			if ground_ray_collision.distance < 0.7 {
+			if ground_ray_collision.distance < 1 {
 				on_ground = true
 				hit_normal = ground_ray_collision.normal
 				cast_point = ground_ray_collision.point
@@ -144,6 +153,7 @@ player_level_collision :: proc(player: ^Player) {
 		player.slope = l.angle_between(hit_normal, VECY)
 	} else {
 		remove_player_flag(.Grounded)
+		player.slope = 0
 	}
 }
 
