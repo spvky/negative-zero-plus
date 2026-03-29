@@ -26,4 +26,5 @@ exit :: proc() {
 gameplay_loop :: proc() {
 	update_camera_position()
 	update_player()
+	process_events()
 }

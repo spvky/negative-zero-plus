@@ -1,20 +1,23 @@
 package main
 
+import "core:log"
 import "core:math"
 import l "core:math/linalg"
 import rl "vendor:raylib"
 
 P_SPEED: f32 : 3
 P_DECEL: f32 : 0.8
+PI2: f32 : math.PI * 2
 
 Player :: struct {
 	translation:    Vec3,
+	current_speed:  f32,
 	velocity:       Vec3,
 	turnspeed:      f32,
 	move_delta:     Vec3,
-	angle_to_delta: f32,
 	rotation:       f32,
 	forward:        Vec3,
+	angle_to_delta: f32,
 	right:          Vec3,
 }
 
@@ -33,17 +36,31 @@ update_player :: proc() {
 		player.right = -l.cross(player.forward, Vec3{0, 1, 0})
 		player.angle_to_delta =
 			player.move_delta == VEC0 ? 0 : signed_angle_between(player.forward, player.move_delta)
-		player.rotation = l.lerp(
-			player.rotation,
-			player.rotation - player.angle_to_delta,
-			delta * player.turnspeed,
-		)
+		if player.move_delta != VEC0 {
+			if math.abs(player.angle_to_delta) > 0.087 {
+				player.rotation = l.lerp(
+					player.rotation,
+					player.rotation - player.angle_to_delta,
+					delta * player.turnspeed,
+				)
+			} else {
+				player.rotation -= player.angle_to_delta
+			}
+		}
+		if player.rotation > PI2 {
+			player.rotation -= PI2
+		}
+		if player.rotation < -PI2 {
+			player.rotation += PI2
+		}
+		player.current_speed = l.dot(player.forward, player.velocity)
 	}
 	world.camera.look_target = player.translation
 	set_player_move_delta()
 	update_player_orientation(player, delta)
 	set_player_velocity(player)
 	apply_player_velocity(player, delta)
+	player_level_collision()
 }
 
 set_player_move_delta :: proc() {
@@ -75,6 +92,37 @@ set_player_velocity :: proc(player: ^Player) {
 
 apply_player_velocity :: proc(player: ^Player, delta: f32) {
 	player.translation += player.velocity * delta
+}
+
+player_level_collision :: proc() {
+	for collision_data in world.level_collision {
+		collides, collision := sphere_level_collision_test(
+			{center = world.player.translation, radius = 0.5},
+			collision_data,
+		)
+		if collides {
+			resolve_player_level_collision(collision)
+		}
+
+	}
+}
+
+resolve_player_level_collision :: proc(collision: Collision) {
+	player := &world.player
+	lateral_collision := math.abs(l.dot(collision.normal, VECY)) < 0.25
+	if lateral_collision {
+		lateral_velo := Vec3{player.velocity.x, 0, player.velocity.z}
+		lateral_normal := l.normalize0(Vec3{collision.normal.x, 0, collision.normal.z})
+		velo_along_axis := l.dot(lateral_normal, lateral_velo)
+		new_velo := player.velocity - velo_along_axis * lateral_normal
+		player.velocity = new_velo
+		// if l.dot(collision.normal, VECX) > 0.5 {
+		// }
+		// Bonk Check here, if our forward speed is above a threshold and we're not grounded
+	} else {
+		player.velocity.y = 0
+	}
+	player.translation += collision.depth * collision.normal
 }
 
 

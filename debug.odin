@@ -13,8 +13,10 @@ debug_ui :: proc() {
 player_debug_text :: proc() {
 	player := world.player
 	player_string := fmt.tprintf(
-		"Player:\n\tAngle To Delta: %2.f\n\tTranslation:[%.2f,%.2f,%.2f]\n\tVelocity:[%.2f,%.2f,%.2f]\n\tForward:[%.2f,%.2f,%.2f]\n\tRight:[%.2f,%.2f,%.2f]",
-		math.to_degrees(player.angle_to_delta),
+		"Player:\n\tCurrent Speed: %2.f\n\tRotation: %.2f\n\tAngle To Delta: %.2f\n\tTranslation:[%.2f,%.2f,%.2f]\n\tVelocity:[%.2f,%.2f,%.2f]\n\tForward:[%.2f,%.2f,%.2f]\n\tRight:[%.2f,%.2f,%.2f]",
+		player.current_speed,
+		player.rotation,
+		player.angle_to_delta,
 		player.translation.x,
 		player.translation.y,
 		player.translation.z,
@@ -33,7 +35,7 @@ player_debug_text :: proc() {
 		strings.clone_to_cstring(player_string, allocator = context.temp_allocator),
 		10,
 		30,
-		16,
+		20,
 		rl.BLACK,
 	)
 }

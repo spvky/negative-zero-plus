@@ -39,18 +39,18 @@ update_camera_position :: proc() {
 	switch world.camera.mode {
 	case .Octal:
 		if rl.IsKeyPressed(.LEFT) {
-			world.camera.target_angle += ROT_SEGMENT
-		}
-		if rl.IsKeyPressed(.RIGHT) {
 			world.camera.target_angle -= ROT_SEGMENT
 		}
+		if rl.IsKeyPressed(.RIGHT) {
+			world.camera.target_angle += ROT_SEGMENT
+		}
 	case .Free:
-		if rl.IsKeyDown(.A) {
-			shift += 1
+		if rl.IsKeyDown(.LEFT) {
+			shift -= 1
 		}
 
-		if rl.IsKeyDown(.D) {
-			shift -= 1
+		if rl.IsKeyDown(.RIGHT) {
+			shift += 1
 		}
 		world.camera.target_angle += delta * shift * 1
 	}
