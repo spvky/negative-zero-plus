@@ -19,6 +19,7 @@ Player :: struct {
 	forward:        Vec3,
 	angle_to_delta: f32,
 	right:          Vec3,
+	flags:          bit_set[Player_Flag],
 }
 
 make_player :: proc(translation: Vec3) -> (player: Player) {
@@ -59,8 +60,9 @@ update_player :: proc() {
 	set_player_move_delta()
 	update_player_orientation(player, delta)
 	set_player_velocity(player)
+	apply_player_gravity(player, delta)
 	apply_player_velocity(player, delta)
-	player_level_collision()
+	player_level_collision(player)
 }
 
 set_player_move_delta :: proc() {
@@ -81,9 +83,19 @@ set_player_move_delta :: proc() {
 	world.player.move_delta = interpolate_vector(l.normalize0(raw_delta))
 }
 
+apply_player_gravity :: proc(player: ^Player, delta: f32) {
+	if player.velocity.y > 0 {
+		player.velocity.y -= rising_gravity * delta
+	} else {
+		player.velocity.y -= falling_gravity * delta
+	}
+}
+
 set_player_velocity :: proc(player: ^Player) {
 	if player.move_delta != VEC0 {
-		player.velocity = player.forward * P_SPEED
+		forward_velo := player.forward * P_SPEED
+		player.velocity.x = forward_velo.x
+		player.velocity.z = forward_velo.z
 	} else {
 		player.velocity.x *= P_DECEL
 		player.velocity.z *= P_DECEL
@@ -94,22 +106,35 @@ apply_player_velocity :: proc(player: ^Player, delta: f32) {
 	player.translation += player.velocity * delta
 }
 
-player_level_collision :: proc() {
+player_level_collision :: proc(player: ^Player) {
+	ground_ray := rl.Ray {
+		position  = player.translation,
+		direction = -VECY,
+	}
+	on_ground: bool
+
 	for collision_data in world.level_collision {
 		collides, collision := sphere_level_collision_test(
 			{center = world.player.translation, radius = 0.5},
 			collision_data,
 		)
 		if collides {
-			resolve_player_level_collision(collision)
+			resolve_player_level_collision(player, collision)
 		}
 
+		// Ground cast
+		// ground_ray_collision := rl.GetRayCollisionMesh(
+		// 	ground_ray,
+		// 	collision_data.mesh_ptr^,
+		// 	rl.MatrixIdentity(),
+		// )
 	}
 }
 
-resolve_player_level_collision :: proc(collision: Collision) {
-	player := &world.player
+resolve_player_level_collision :: proc(player: ^Player, collision: Collision) {
 	lateral_collision := math.abs(l.dot(collision.normal, VECY)) < 0.25
+
+	// SAT collision
 	if lateral_collision {
 		lateral_velo := Vec3{player.velocity.x, 0, player.velocity.z}
 		lateral_normal := l.normalize0(Vec3{collision.normal.x, 0, collision.normal.z})
