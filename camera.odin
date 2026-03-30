@@ -35,7 +35,9 @@ make_camera :: proc() -> Camera {
 		position = {0, 0, 0},
 		up = {0, 1, 0},
 		min_z_offset = 3,
-		min_y_offset = 2,
+		current_z_offset = 3,
+		min_y_offset = 2.5,
+		current_y_offset = 2.5,
 		smoothing = 10,
 	}
 }

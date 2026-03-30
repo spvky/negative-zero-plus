@@ -65,9 +65,9 @@ update_player :: proc() {
 	// Follow the players Y position at a speed based on if the current target is above or below the player
 	look_speed: f32
 	if world.camera.look_target.y < player.translation.y {
-		look_speed = 2
-	} else {
 		look_speed = 5
+	} else {
+		look_speed = 8.5
 	}
 	world.camera.look_target.y = l.lerp(
 		world.camera.look_target.y,
