@@ -5,15 +5,20 @@ import l "core:math/linalg"
 import rl "vendor:raylib"
 
 Camera :: struct {
-	using raw:     rl.Camera3D,
-	target_offset: Vec3,
-	target_angle:  f32,
-	angle:         f32,
-	look_target:   Vec3,
-	smoothing:     f32,
-	forward:       Vec3,
-	right:         Vec3,
-	mode:          Camera_Mode,
+	using raw:        rl.Camera3D,
+	target_angle:     f32,
+	angle:            f32,
+	look_target:      Vec3,
+	smoothing:        f32,
+	forward:          Vec3,
+	right:            Vec3,
+	mode:             Camera_Mode,
+	min_z_offset:     f32,
+	current_z_offset: f32,
+	max_z_offset:     f32,
+	min_y_offset:     f32,
+	current_y_offset: f32,
+	max_y_offset:     f32,
 }
 
 Camera_Mode :: enum {
@@ -29,7 +34,8 @@ make_camera :: proc() -> Camera {
 		fovy = 90,
 		position = {0, 0, 0},
 		up = {0, 1, 0},
-		target_offset = {0, 7, 5},
+		min_z_offset = 3,
+		min_y_offset = 2,
 		smoothing = 10,
 	}
 }
@@ -37,17 +43,18 @@ make_camera :: proc() -> Camera {
 update_camera_position :: proc() {
 	delta := rl.GetFrameTime()
 	shift: f32
-	switch world.camera.mode {
+	camera := &world.camera
+	player := world.player
+
+	switch camera.mode {
 	case .Octal:
 		if rl.IsKeyPressed(.LEFT) {
-			world.camera.target_angle -= ROT_SEGMENT
+			camera.target_angle -= ROT_SEGMENT
 		}
 		if rl.IsKeyPressed(.RIGHT) {
-			world.camera.target_angle += ROT_SEGMENT
+			camera.target_angle += ROT_SEGMENT
 		}
 	case .Dynamic:
-		player := world.player
-		lateral_velo := Vec3{player.velocity.x, 0, player.velocity.z}
 	case .FreeRotate:
 		if rl.IsKeyDown(.LEFT) {
 			shift -= 1
@@ -56,23 +63,27 @@ update_camera_position :: proc() {
 		if rl.IsKeyDown(.RIGHT) {
 			shift += 1
 		}
-		world.camera.target_angle += delta * shift * 1
+		camera.target_angle += delta * shift * 1
 	}
 
-	world.camera.angle = math.lerp(
-		world.camera.angle,
-		world.camera.target_angle,
-		delta * world.camera.smoothing,
-	)
+	camera.angle = math.lerp(camera.angle, camera.target_angle, delta * camera.smoothing)
 
 	// Update camera z offset based on comparitve y axis and player lateral speed
-	world.camera.target_offset.z = 3 + (world.player.current_speed / 4)
-	world.camera.target_offset.y = 3 - (world.player.current_speed / 4)
+	camera.current_z_offset = l.lerp(
+		camera.current_z_offset,
+		camera.min_z_offset + (player.current_speed / 4),
+		delta,
+	)
+	camera.current_y_offset = l.lerp(
+		camera.current_y_offset,
+		camera.min_y_offset - (player.current_speed / 4),
+		delta,
+	)
 
 	offset := Vec3 {
-		math.cos(world.camera.angle) * world.camera.target_offset.z,
-		world.camera.target_offset.y,
-		math.sin(world.camera.angle) * world.camera.target_offset.z,
+		math.cos(camera.angle) * camera.current_z_offset,
+		camera.current_y_offset,
+		math.sin(camera.angle) * camera.current_z_offset,
 	}
 
 
