@@ -56,9 +56,24 @@ update_player :: proc() {
 		if player.rotation < -PI2 {
 			player.rotation += PI2
 		}
-		player.current_speed = l.dot(player.forward, player.velocity)
+		player.current_speed = l.dot(player.forward, Vec3{player.velocity.x, 0, player.velocity.z})
 	}
-	world.camera.look_target = player.translation
+	world.camera.look_target.x = player.translation.x
+	world.camera.look_target.z = player.translation.z
+
+
+	// Follow the players Y position at a speed based on if the current target is above or below the player
+	look_speed: f32
+	if world.camera.look_target.y < player.translation.y {
+		look_speed = 2
+	} else {
+		look_speed = 5
+	}
+	world.camera.look_target.y = l.lerp(
+		world.camera.look_target.y,
+		player.translation.y,
+		delta * look_speed,
+	)
 	set_player_move_delta()
 	update_player_orientation(player, delta)
 	set_player_velocity(player)

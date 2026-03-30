@@ -18,7 +18,8 @@ Camera :: struct {
 
 Camera_Mode :: enum {
 	Octal,
-	Free,
+	Dynamic,
+	FreeRotate,
 }
 
 ROT_SEGMENT :: f32(math.PI / 4)
@@ -44,7 +45,10 @@ update_camera_position :: proc() {
 		if rl.IsKeyPressed(.RIGHT) {
 			world.camera.target_angle += ROT_SEGMENT
 		}
-	case .Free:
+	case .Dynamic:
+		player := world.player
+		lateral_velo := Vec3{player.velocity.x, 0, player.velocity.z}
+	case .FreeRotate:
 		if rl.IsKeyDown(.LEFT) {
 			shift -= 1
 		}
@@ -61,7 +65,10 @@ update_camera_position :: proc() {
 		delta * world.camera.smoothing,
 	)
 
-	// camera.angle +=
+	// Update camera z offset based on comparitve y axis and player lateral speed
+	world.camera.target_offset.z = 3 + (world.player.current_speed / 4)
+	world.camera.target_offset.y = 3 - (world.player.current_speed / 4)
+
 	offset := Vec3 {
 		math.cos(world.camera.angle) * world.camera.target_offset.z,
 		world.camera.target_offset.y,
