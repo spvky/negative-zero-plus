@@ -50,11 +50,11 @@ update_player :: proc() {
 				player.rotation -= player.angle_to_delta
 			}
 		}
-		if player.rotation > PI2 {
-			player.rotation -= PI2
+		if player.rotation > PI2 * 20 {
+			player.rotation -= PI2 * 20
 		}
-		if player.rotation < -PI2 {
-			player.rotation += PI2
+		if player.rotation < -PI2 * 20 {
+			player.rotation += PI2 * 20
 		}
 		player.current_speed = l.dot(player.forward, Vec3{player.velocity.x, 0, player.velocity.z})
 	}

@@ -13,9 +13,11 @@ debug_ui :: proc() {
 player_debug_text :: proc() {
 	player := world.player
 	player_string := fmt.tprintf(
-		"Player:\n\tCurrent Speed: %2.f\n\tRotation: %.2f\n\tAngle To Delta: %.2f\n\tTranslation:[%.2f,%.2f,%.2f]\n\tVelocity:[%.2f,%.2f,%.2f]\n\tForward:[%.2f,%.2f,%.2f]\n\tRight:[%.2f,%.2f,%.2f]\n\tFlags: %v\n\tSlope: %.2f",
+		"Player:\n\tCurrent Speed: %2.f\n\tRotation: %.2f\n\tCamera Rotation: %.2f\n\tCamera Target Rotation: %.2f\n\tAngle To Delta: %.2f\n\tTranslation:[%.2f,%.2f,%.2f]\n\tVelocity:[%.2f,%.2f,%.2f]\n\tForward:[%.2f,%.2f,%.2f]\n\tRight:[%.2f,%.2f,%.2f]\n\tFlags: %v\n\tSlope: %.2f",
 		player.current_speed,
 		player.rotation,
+		world.camera.angle,
+		world.camera.target_angle,
 		player.angle_to_delta,
 		player.translation.x,
 		player.translation.y,

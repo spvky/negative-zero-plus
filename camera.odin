@@ -68,7 +68,24 @@ update_camera_position :: proc() {
 		camera.target_angle += delta * shift * 1
 	}
 
-	camera.angle = math.lerp(camera.angle, camera.target_angle, delta * camera.smoothing)
+	if camera.target_angle > PI2 * 20 {
+		camera.target_angle -= PI2 * 20
+	}
+	if camera.target_angle < -PI2 * 20 {
+		camera.target_angle += PI2 * 20
+	}
+	if camera.angle > PI2 * 20 {
+		camera.angle -= PI2 * 20
+	}
+	if camera.angle < -PI2 * 20 {
+		camera.angle += PI2 * 20
+	}
+
+	if math.abs(camera.angle - camera.target_angle) > 0.087 {
+		camera.angle = math.lerp(camera.angle, camera.target_angle, delta * camera.smoothing)
+	} else {
+		camera.angle = camera.target_angle
+	}
 
 	// Update camera z offset based on comparitve y axis and player lateral speed
 	camera.current_z_offset = l.lerp(
