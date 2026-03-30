@@ -11,17 +11,19 @@ PI2: f32 : math.PI * 2
 cast_point: Vec3
 
 Player :: struct {
-	translation:    Vec3,
-	current_speed:  f32,
-	velocity:       Vec3,
-	turnspeed:      f32,
-	move_delta:     Vec3,
-	rotation:       f32,
-	forward:        Vec3,
-	angle_to_delta: f32,
-	right:          Vec3,
-	slope:          f32,
-	flags:          bit_set[Player_Flag],
+	translation:     Vec3,
+	current_speed:   f32,
+	velocity:        Vec3,
+	turnspeed:       f32,
+	move_delta:      Vec3,
+	rotation:        f32,
+	forward:         Vec3,
+	angle_to_delta:  f32,
+	right:           Vec3,
+	slope:           f32,
+	flags:           bit_set[Player_Flag],
+	shadow_position: Vec3,
+	shadow_distance: f32,
 }
 
 make_player :: proc(translation: Vec3) -> (player: Player) {
@@ -161,6 +163,8 @@ player_level_collision :: proc(player: ^Player) {
 				hit_normal = ground_ray_collision.normal
 				cast_point = ground_ray_collision.point
 			}
+			player.shadow_position = ground_ray_collision.point
+			player.shadow_distance = ground_ray_collision.distance
 		}
 	}
 	if on_ground {
@@ -195,8 +199,18 @@ resolve_player_level_collision :: proc(player: ^Player, collision: Collision) {
 draw_player :: proc() {
 	player := &world.player
 	rl.DrawSphere(player.translation, 0.5, rl.PINK)
+
 	forward_point := player.translation + (player.forward * 2)
-	delta_point := player.translation + (player.move_delta * 2)
 	rl.DrawLine3D(player.translation, forward_point, rl.RED)
-	rl.DrawLine3D(player.translation, delta_point, rl.GREEN)
+
+	shadow_scale_factor := 2 / player.shadow_distance
+	shadow_scale := clamp(shadow_scale_factor, 0.25, 1)
+	rl.DrawModel(
+		assets.flat_quad,
+		player.shadow_position + Vec3{0, 0.1, 0},
+		shadow_scale,
+		rl.WHITE,
+	)
+	// delta_point := player.translation + (player.move_delta * 2)
+	// rl.DrawLine3D(player.translation, delta_point, rl.GREEN)
 }
