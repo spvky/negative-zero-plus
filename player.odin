@@ -21,7 +21,10 @@ Player :: struct {
 	angle_to_delta:  f32,
 	right:           Vec3,
 	slope:           f32,
+	state:           Player_State,
+	prev_state:      Player_State,
 	flags:           bit_set[Player_Flag],
+	flag_timers:     [Player_Flag]f32,
 	shadow_position: Vec3,
 	shadow_distance: f32,
 }
@@ -67,7 +70,11 @@ update_player :: proc() {
 	// Follow the players Y position at a speed based on if the current target is above or below the player
 	look_speed: f32
 	if world.camera.look_target.y < player.translation.y {
-		look_speed = 5
+		if .Grounded in player.flags {
+			look_speed = 5
+		} else {
+			look_speed = 2
+		}
 	} else {
 		look_speed = 8.5
 	}
@@ -83,12 +90,26 @@ update_player :: proc() {
 	apply_player_velocity(player, delta)
 	player_level_collision(player)
 	player_jump(player)
+	manage_player_flags(player, delta)
+}
+
+manage_player_flags :: proc(player: ^Player, delta: f32) {
+	for v in Player_Flag {
+		timer := &player.flag_timers[v]
+		// Set an arbitrary max flag value of 100 seconds
+		timer^ = math.clamp(timer^ - delta, 0, 100)
+		if timer^ <= 0.0 {
+			// Could fire an event when a flag falls off
+			player.flags -= {v}
+		}
+	}
 }
 
 player_jump :: proc(player: ^Player) {
 	if rl.IsKeyPressed(.SPACE) {
 		if .Grounded in player.flags {
 			player.velocity.y = calculate_jump_speed()
+			remove_player_flag(.Grounded)
 		}
 	}
 }
@@ -168,13 +189,18 @@ player_level_collision :: proc(player: ^Player) {
 		}
 	}
 	if on_ground {
-		add_player_flag(.Grounded)
+		add_player_flag(.Grounded, 0.1)
 		player.slope = l.angle_between(hit_normal, VECY)
 	} else {
-		remove_player_flag(.Grounded)
 		player.slope = 0
 	}
 }
+
+// player_land :: proc(player: ^Player) {
+// 	if .FirstFall in player.flags {
+// 		add_player_flag(.DoubleJump)
+// 	}
+// }
 
 resolve_player_level_collision :: proc(player: ^Player, collision: Collision) {
 	lateral_collision := math.abs(l.dot(collision.normal, VECY)) < 0.25
