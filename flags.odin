@@ -6,6 +6,7 @@ Player_Flag :: enum {
 	Tripple_Jump,
 	Diving,
 	Jump_Propulsion,
+	Run_Startup,
 }
 
 // Adds a flag to the player, by default flag will have a duration of 0.05 (about 3 frames at 60fps)

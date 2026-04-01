@@ -5,7 +5,6 @@ import "core:math"
 import l "core:math/linalg"
 import rl "vendor:raylib"
 
-P_SPEED := calculate_ground_speed()
 P_DECEL: f32 : 0.997
 PI2: f32 : math.PI * 2
 cast_point: Vec3
@@ -60,7 +59,7 @@ update_player :: proc() {
 	)
 	poll_input(player)
 	update_player_orientation(player, delta)
-	set_player_velocity(player)
+	update_player_velocity(player, delta)
 	apply_player_gravity(player, delta)
 	apply_player_velocity(player, delta)
 	player_level_collision(player)
@@ -145,15 +144,18 @@ set_player_move_delta :: proc() {
 
 apply_player_gravity :: proc(player: ^Player, delta: f32) {
 	if player.velocity.y > 0 {
-		player.velocity.y -= rising_gravity * delta
+		player.velocity.y -= RISING_GRAVITY * delta
 	} else {
-		player.velocity.y -= falling_gravity * delta
+		player.velocity.y -= FALLING_GRAVITY * delta
 	}
 }
 
-set_player_velocity :: proc(player: ^Player) {
+update_player_velocity :: proc(player: ^Player, delta: f32) {
 	if player.move_delta != VEC0 {
-		forward_velo := player.forward * P_SPEED + (P_SPEED * 0.75 * player.slope * player.forward)
+		forward_velo :=
+			player.forward *
+			((MAX_SPEED + (MAX_SPEED * 0.75 * player.slope)) *
+					(1 - player.flag_timers[.Run_Startup]))
 		player.velocity.x = forward_velo.x
 		player.velocity.z = forward_velo.z
 	} else {
@@ -206,12 +208,6 @@ player_level_collision :: proc(player: ^Player) {
 		player.slope = 0
 	}
 }
-
-// player_land :: proc(player: ^Player) {
-// 	if .FirstFall in player.flags {
-// 		add_player_flag(.DoubleJump)
-// 	}
-// }
 
 resolve_player_level_collision :: proc(player: ^Player, collision: Collision) {
 	lateral_collision := math.abs(l.dot(collision.normal, VECY)) < 0.25
