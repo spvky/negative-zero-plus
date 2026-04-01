@@ -15,13 +15,21 @@ TRIPPLE_JUMP_HEIGHT: f32 : 4
 
 
 run_speed := calculate_ground_speed()
-jump_speed := calculate_jump_speed()
+// jump_speed := calculate_jump_speed()
+// dobule_jump_speed := calculate_dobule_jump_speed()
+// tripple_jump_speed := calculate_tripple_jump_speed()
 rising_gravity := calculate_rising_gravity()
 falling_gravity := calculate_falling_gravity()
 
 // Jumping
 calculate_jump_speed :: proc "c" () -> f32 {
 	return (2 * JUMP_HEIGHT) / TIME_TO_PEAK
+}
+calculate_double_jump_speed :: proc "c" () -> f32 {
+	return (2 * DOUBLE_JUMP_HEIGHT) / TIME_TO_PEAK
+}
+calculate_tripple_jump_speed :: proc "c" () -> f32 {
+	return (2 * TRIPPLE_JUMP_HEIGHT) / TIME_TO_PEAK
 }
 
 calculate_rising_gravity :: proc "c" () -> f32 {

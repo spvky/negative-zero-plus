@@ -90,6 +90,8 @@ update_player :: proc() {
 	apply_player_velocity(player, delta)
 	player_level_collision(player)
 	player_jump(player)
+	manage_player_state(player)
+	handle_player_state_transitions(player)
 	manage_player_flags(player, delta)
 }
 
@@ -108,10 +110,19 @@ manage_player_flags :: proc(player: ^Player, delta: f32) {
 player_jump :: proc(player: ^Player) {
 	if rl.IsKeyPressed(.SPACE) {
 		if .Grounded in player.flags {
-			player.velocity.y = calculate_jump_speed()
-			remove_player_flag(.Grounded)
+			if .Tripple_Jump in player.flags {
+				player.velocity.y = calculate_tripple_jump_speed()
+			} else if .Double_Jump in player.flags {
+				player.velocity.y = calculate_double_jump_speed()
+			} else {
+				player.velocity.y = calculate_jump_speed()
+			}
+			add_player_flag(.Jump_Propulsion)
 		}
 	}
+}
+
+manage_player_air_y_velocity :: proc(player: ^Player) {
 }
 
 set_player_move_delta :: proc() {

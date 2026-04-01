@@ -2,8 +2,10 @@ package main
 
 Player_Flag :: enum {
 	Grounded,
-	DoubleJump,
-	TrippleJump,
+	Double_Jump,
+	Tripple_Jump,
+	Diving,
+	Jump_Propulsion,
 }
 
 // Adds a flag to the player, by default flag will have a duration of 0.05 (about 3 frames at 60fps)
