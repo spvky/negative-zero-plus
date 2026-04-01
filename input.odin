@@ -1,6 +1,9 @@
 package main
 
+import l "core:math/linalg"
 import rl "vendor:raylib"
+
+GAMEPAS_AXIS_DEADZONE: f32 : 0.2
 
 input_buffer: Input_Buffer
 
@@ -40,6 +43,13 @@ check_pads_released :: proc(count: i32, button: rl.GamepadButton) -> bool {
 		}
 	}
 	return false
+}
+check_pads_axis :: proc(count: i32, axis: rl.GamepadAxis) -> (value: f32) {
+	for i in 0 ..< count {
+		value = rl.GetGamepadAxisMovement(i, axis)
+		if value != 0 do return
+	}
+	return
 }
 
 update_buffer :: proc() {
@@ -83,52 +93,25 @@ is_action_held :: proc(action: Input_Action) -> bool {
 	return action in input_buffer.held
 }
 
-poll_input :: proc() {
-	player := &world.player
-	direction: Vec2
-	if rl.IsKeyDown(.A) || check_pads_down(3, .LEFT_FACE_LEFT) {
-		direction.x -= 1
-	}
-	if rl.IsKeyDown(.D) || check_pads_down(3, .LEFT_FACE_RIGHT) {
-		direction.x += 1
-	}
-	if rl.IsKeyDown(.W) || check_pads_down(3, .LEFT_FACE_UP) {
-		direction.y -= 1
-	}
-	if rl.IsKeyDown(.S) || check_pads_down(3, .LEFT_FACE_DOWN) {
-		direction.y += 1
-	}
+poll_input :: proc(player: ^Player) {
+	raw_delta: Vec3
 
-	kick_angle: Kick_Angle
-
-	if direction.y >= 0 {
-		kick_angle = .Forward
-	} else {
-		kick_angle = .Up
+	if rl.IsKeyDown(.W) || check_pads_axis(3, .LEFT_Y) < -GAMEPAS_AXIS_DEADZONE {
+		raw_delta.z += 1
 	}
+	if rl.IsKeyDown(.S) || check_pads_axis(3, .LEFT_Y) > GAMEPAS_AXIS_DEADZONE {
+		raw_delta.z -= 1
+	}
+	if rl.IsKeyDown(.D) || check_pads_axis(3, .LEFT_X) > GAMEPAS_AXIS_DEADZONE {
+		raw_delta.x += 1
+	}
+	if rl.IsKeyDown(.A) || check_pads_axis(3, .LEFT_X) < -GAMEPAS_AXIS_DEADZONE {
+		raw_delta.x -= 1
+	}
+	player.move_delta = interpolate_vector(l.normalize0(raw_delta))
 
-
-	player.movement_delta = direction.x
-	player.kick_angle = kick_angle
 	update_buffer()
 	// Buffer pressed inputs
-	if rl.IsKeyPressed(.SPACE) || check_pads_pressed(3, .RIGHT_FACE_DOWN) {
-		if rl.IsKeyDown(.S) || check_pads_down(3, .LEFT_FACE_DOWN) {
-			buffer_action(.Slide)
-		} else {
-			buffer_action(.Jump)
-		}
-	}
-	if rl.IsKeyPressed(.K) || check_pads_pressed(3, .RIGHT_FACE_LEFT) do buffer_action(.Kick)
-	if rl.IsKeyPressed(.J) || check_pads_pressed(3, .RIGHT_FACE_UP) do buffer_action(.Badge)
-	if rl.IsKeyPressed(.S) || check_pads_pressed(3, .LEFT_FACE_DOWN) do buffer_action(.Crouch)
-	if rl.IsKeyPressed(.H) || check_pads_pressed(3, .RIGHT_TRIGGER_1) do buffer_action(.Dash)
-	if rl.IsKeyPressed(.R) || check_pads_pressed(3, .RIGHT_TRIGGER_2) do buffer_action(.Reset)
-
+	if rl.IsKeyPressed(.SPACE) || check_pads_pressed(3, .RIGHT_FACE_DOWN) do buffer_action(.Jump)
 	if rl.IsKeyReleased(.SPACE) || check_pads_released(3, .RIGHT_FACE_DOWN) do release_action(.Jump)
-	if rl.IsKeyReleased(.K) || check_pads_released(3, .RIGHT_FACE_LEFT) do release_action(.Kick)
-	if rl.IsKeyReleased(.J) || check_pads_released(3, .RIGHT_FACE_UP) do release_action(.Badge)
-	if rl.IsKeyReleased(.S) || check_pads_released(3, .LEFT_FACE_DOWN) do release_action(.Crouch)
-	if rl.IsKeyReleased(.H) || check_pads_released(3, .RIGHT_TRIGGER_1) do release_action(.Dash)
-	if rl.IsKeyReleased(.R) || check_pads_released(3, .RIGHT_TRIGGER_2) do buffer_action(.Reset)
 }

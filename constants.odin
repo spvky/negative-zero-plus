@@ -9,15 +9,12 @@ TIME_TO_PEAK: f32 : 0.5
 // How long to reach height we jumped from (in seconds)
 TIME_TO_DESCENT: f32 : 0.45
 // How many pixels high is a full jump
-JUMP_HEIGHT: f32 : 2
-DOUBLE_JUMP_HEIGHT: f32 : 3
-TRIPPLE_JUMP_HEIGHT: f32 : 4
+JUMP_HEIGHT: f32 : 1.5
+DOUBLE_JUMP_HEIGHT: f32 : 2
+TRIPPLE_JUMP_HEIGHT: f32 : 3
 
 
 run_speed := calculate_ground_speed()
-// jump_speed := calculate_jump_speed()
-// dobule_jump_speed := calculate_dobule_jump_speed()
-// tripple_jump_speed := calculate_tripple_jump_speed()
 rising_gravity := calculate_rising_gravity()
 falling_gravity := calculate_falling_gravity()
 

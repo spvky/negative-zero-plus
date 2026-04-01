@@ -38,31 +38,6 @@ make_player :: proc(translation: Vec3) -> (player: Player) {
 update_player :: proc() {
 	delta := rl.GetFrameTime()
 	player := &world.player
-	// Nested procs here don't need to be called anywhere else but i don't want to polute the scope for the LSP
-	update_player_orientation :: proc(player: ^Player, delta: f32) {
-		player.forward = {math.sin(player.rotation), 0, math.cos(player.rotation)}
-		player.right = -l.cross(player.forward, Vec3{0, 1, 0})
-		player.angle_to_delta =
-			player.move_delta == VEC0 ? 0 : signed_angle_between(player.forward, player.move_delta)
-		if player.move_delta != VEC0 {
-			if math.abs(player.angle_to_delta) > 0.087 {
-				player.rotation = l.lerp(
-					player.rotation,
-					player.rotation - player.angle_to_delta,
-					delta * player.turnspeed,
-				)
-			} else {
-				player.rotation -= player.angle_to_delta
-			}
-		}
-		if player.rotation > PI2 * 20 {
-			player.rotation -= PI2 * 20
-		}
-		if player.rotation < -PI2 * 20 {
-			player.rotation += PI2 * 20
-		}
-		player.current_speed = l.dot(player.forward, Vec3{player.velocity.x, 0, player.velocity.z})
-	}
 	world.camera.look_target.x = player.translation.x
 	world.camera.look_target.z = player.translation.z
 
@@ -83,7 +58,7 @@ update_player :: proc() {
 		player.translation.y,
 		delta * look_speed,
 	)
-	set_player_move_delta()
+	poll_input(player)
 	update_player_orientation(player, delta)
 	set_player_velocity(player)
 	apply_player_gravity(player, delta)
@@ -93,6 +68,31 @@ update_player :: proc() {
 	manage_player_state(player)
 	handle_player_state_transitions(player)
 	manage_player_flags(player, delta)
+}
+
+update_player_orientation :: proc(player: ^Player, delta: f32) {
+	player.forward = {math.sin(player.rotation), 0, math.cos(player.rotation)}
+	player.right = -l.cross(player.forward, Vec3{0, 1, 0})
+	player.angle_to_delta =
+		player.move_delta == VEC0 ? 0 : signed_angle_between(player.forward, player.move_delta)
+	if player.move_delta != VEC0 {
+		if math.abs(player.angle_to_delta) > 0.087 {
+			player.rotation = l.lerp(
+				player.rotation,
+				player.rotation - player.angle_to_delta,
+				delta * player.turnspeed,
+			)
+		} else {
+			player.rotation -= player.angle_to_delta
+		}
+	}
+	if player.rotation > PI2 * 20 {
+		player.rotation -= PI2 * 20
+	}
+	if player.rotation < -PI2 * 20 {
+		player.rotation += PI2 * 20
+	}
+	player.current_speed = l.dot(player.forward, Vec3{player.velocity.x, 0, player.velocity.z})
 }
 
 manage_player_flags :: proc(player: ^Player, delta: f32) {
@@ -108,7 +108,7 @@ manage_player_flags :: proc(player: ^Player, delta: f32) {
 }
 
 player_jump :: proc(player: ^Player) {
-	if rl.IsKeyPressed(.SPACE) {
+	if is_action_buffered(.Jump) {
 		if .Grounded in player.flags {
 			if .Tripple_Jump in player.flags {
 				player.velocity.y = calculate_tripple_jump_speed()
