@@ -116,30 +116,9 @@ player_jump :: proc(player: ^Player) {
 			} else {
 				player.velocity.y = calculate_jump_speed()
 			}
-			add_player_flag(.Jump_Propulsion)
+			add_player_flag(.Jump_Propulsion, 0.25)
 		}
 	}
-}
-
-manage_player_air_y_velocity :: proc(player: ^Player) {
-}
-
-set_player_move_delta :: proc() {
-	raw_delta: Vec3
-
-	if rl.IsKeyDown(.W) {
-		raw_delta.z += 1
-	}
-	if rl.IsKeyDown(.S) {
-		raw_delta.z -= 1
-	}
-	if rl.IsKeyDown(.A) {
-		raw_delta.x -= 1
-	}
-	if rl.IsKeyDown(.D) {
-		raw_delta.x += 1
-	}
-	world.player.move_delta = interpolate_vector(l.normalize0(raw_delta))
 }
 
 apply_player_gravity :: proc(player: ^Player, delta: f32) {
@@ -151,16 +130,25 @@ apply_player_gravity :: proc(player: ^Player, delta: f32) {
 }
 
 update_player_velocity :: proc(player: ^Player, delta: f32) {
+	// Lateral
 	if player.move_delta != VEC0 {
 		forward_velo :=
 			player.forward *
 			((MAX_SPEED + (MAX_SPEED * 0.75 * player.slope)) *
-					(1 - player.flag_timers[.Run_Startup]))
+					(1 - (player.flag_timers[.Run_Startup] / 2)))
 		player.velocity.x = forward_velo.x
 		player.velocity.z = forward_velo.z
 	} else {
 		player.velocity.x *= P_DECEL
 		player.velocity.z *= P_DECEL
+	}
+	// Vertical
+	if player.state == .Rising {
+		past_rising_threshold := player.flag_timers[.Jump_Propulsion] < 0.1
+		if past_rising_threshold && !is_action_held(.Jump) {
+			player.velocity.y = 0
+			remove_player_flag(.Jump_Propulsion)
+		}
 	}
 }
 

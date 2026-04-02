@@ -7,7 +7,7 @@ JUMP_DISTANCE: f32 : 5
 // How long to reach jump peak (in seconds)
 TIME_TO_PEAK: f32 : 0.5
 // How long to reach height we jumped from (in seconds)
-TIME_TO_DESCENT: f32 : 0.45
+TIME_TO_DESCENT: f32 : 0.25
 // How many pixels high is a full jump
 JUMP_HEIGHT: f32 : 1.5
 DOUBLE_JUMP_HEIGHT: f32 : 2

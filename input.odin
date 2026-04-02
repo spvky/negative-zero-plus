@@ -4,6 +4,7 @@ import l "core:math/linalg"
 import rl "vendor:raylib"
 
 GAMEPAS_AXIS_DEADZONE: f32 : 0.2
+BUFFER_WINDOW: f32 : 0.1
 
 input_buffer: Input_Buffer
 
@@ -69,9 +70,9 @@ update_buffer :: proc() {
 buffer_action :: proc(action: Input_Action) {
 	switch &v in input_buffer.buffered[action] {
 	case f32:
-		v = 0.15
+		v = BUFFER_WINDOW
 	case:
-		input_buffer.buffered[action] = 0.15
+		input_buffer.buffered[action] = BUFFER_WINDOW
 	}
 	input_buffer.held += {action}
 }
