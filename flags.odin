@@ -4,7 +4,7 @@ Player_Flag :: enum {
 	Grounded,
 	Double_Jump,
 	Tripple_Jump,
-	Diving,
+	Dive_Initiate,
 	Jump_Propulsion,
 	Run_Startup,
 }

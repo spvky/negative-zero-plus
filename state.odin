@@ -10,6 +10,7 @@ Player_State :: enum {
 	TJ_Rising,
 	TJ_Falling,
 	Diving,
+	Sliding,
 }
 
 GROUNDED_STATE_SET: bit_set[Player_State] : {.Idle, .Running}
@@ -45,34 +46,44 @@ manage_player_state :: proc(player: ^Player) {
 		if player.velocity.y <= 0 {
 			state = .Falling
 		}
+		transition_to_diving(player, &state)
 		transition_to_grounded(player, &state)
 	case .Falling:
 		if player.velocity.y > 0 {
 			state = .Rising
 		}
+		transition_to_diving(player, &state)
 		transition_to_grounded(player, &state)
 	case .DJ_Rising:
 		if player.velocity.y <= 0 {
 			state = .DJ_Falling
 		}
+		transition_to_diving(player, &state)
 		transition_to_grounded(player, &state)
 	case .DJ_Falling:
 		if player.velocity.y > 0 {
 			state = .DJ_Rising
 		}
+		transition_to_diving(player, &state)
 		transition_to_grounded(player, &state)
 	case .TJ_Rising:
 		if player.velocity.y <= 0 {
 			state = .TJ_Falling
 		}
+		transition_to_diving(player, &state)
 		transition_to_grounded(player, &state)
 	case .TJ_Falling:
 		if player.velocity.y > 0 {
 			state = .TJ_Rising
 		}
+		transition_to_diving(player, &state)
 		transition_to_grounded(player, &state)
 	case .Diving:
-		transition_to_grounded(player, &state)
+		if .Grounded in player.flags {
+			state = .Sliding
+		}
+	case .Sliding:
+		transition_to_airborne(player, &state)
 	}
 	player.state = state
 }
@@ -90,6 +101,12 @@ handle_player_state_transitions :: proc(player: ^Player) {
 
 	if player.prev_state == .Idle && player.state == .Running {
 		add_player_flag(.Run_Startup, 1)
+	}
+
+	if player.prev_state != .Diving && player.state == .Diving {
+		diving_velocity := player.forward * DIVE_SPEED
+		diving_velocity.y = -2
+		player.velocity = diving_velocity
 	}
 }
 
@@ -122,5 +139,11 @@ transition_to_grounded :: #force_inline proc(player: ^Player, state: ^Player_Sta
 		} else {
 			state^ = .Running
 		}
+	}
+}
+
+transition_to_diving :: #force_inline proc(player: ^Player, state: ^Player_State) {
+	if .Dive_Initiate in player.flags {
+		state^ = .Diving
 	}
 }

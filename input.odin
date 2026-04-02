@@ -19,6 +19,7 @@ Buffered_Input :: union {
 
 Input_Action :: enum {
 	Jump,
+	Kick,
 }
 
 check_pads_down :: proc(count: i32, button: rl.GamepadButton) -> bool {
@@ -115,4 +116,7 @@ poll_input :: proc(player: ^Player) {
 	// Buffer pressed inputs
 	if rl.IsKeyPressed(.SPACE) || check_pads_pressed(3, .RIGHT_FACE_DOWN) do buffer_action(.Jump)
 	if rl.IsKeyReleased(.SPACE) || check_pads_released(3, .RIGHT_FACE_DOWN) do release_action(.Jump)
+
+	if rl.IsKeyPressed(.K) || check_pads_pressed(3, .RIGHT_FACE_RIGHT) do buffer_action(.Kick)
+	if rl.IsKeyReleased(.K) || check_pads_released(3, .RIGHT_FACE_RIGHT) do release_action(.Kick)
 }

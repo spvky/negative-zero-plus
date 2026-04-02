@@ -15,9 +15,12 @@ TRIPPLE_JUMP_HEIGHT: f32 : 3
 
 
 MAX_SPEED := calculate_ground_speed()
+DIVE_SPEED := calculate_ground_speed() * 2
 RISING_GRAVITY := calculate_rising_gravity()
 FALLING_GRAVITY := calculate_falling_gravity()
 TIME_TO_MAX_RUN_SPEED: f32 : 0.4
+RUNNING_DECEL: f32 : 0.997
+SLIDING_DECEL: f32 : 0.9995
 
 // Jumping
 calculate_jump_speed :: proc "c" () -> f32 {

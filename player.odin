@@ -5,7 +5,6 @@ import "core:math"
 import l "core:math/linalg"
 import rl "vendor:raylib"
 
-P_DECEL: f32 : 0.997
 PI2: f32 : math.PI * 2
 cast_point: Vec3
 
@@ -64,6 +63,7 @@ update_player :: proc() {
 	apply_player_velocity(player, delta)
 	player_level_collision(player)
 	player_jump(player)
+	player_dive(player)
 	manage_player_state(player)
 	handle_player_state_transitions(player)
 	manage_player_flags(player, delta)
@@ -75,14 +75,26 @@ update_player_orientation :: proc(player: ^Player, delta: f32) {
 	player.angle_to_delta =
 		player.move_delta == VEC0 ? 0 : signed_angle_between(player.forward, player.move_delta)
 	if player.move_delta != VEC0 {
-		if math.abs(player.angle_to_delta) > 0.087 {
-			player.rotation = l.lerp(
-				player.rotation,
-				player.rotation - player.angle_to_delta,
-				delta * player.turnspeed,
-			)
+		if player.state == .Sliding {
+			if math.abs(player.angle_to_delta) > 0.032 {
+				player.rotation = l.lerp(
+					player.rotation,
+					player.rotation - player.angle_to_delta,
+					delta * player.turnspeed / 3,
+				)
+			} else {
+				player.rotation -= player.angle_to_delta
+			}
 		} else {
-			player.rotation -= player.angle_to_delta
+			if math.abs(player.angle_to_delta) > 0.087 {
+				player.rotation = l.lerp(
+					player.rotation,
+					player.rotation - player.angle_to_delta,
+					delta * player.turnspeed,
+				)
+			} else {
+				player.rotation -= player.angle_to_delta
+			}
 		}
 	}
 	if player.rotation > PI2 * 20 {
@@ -106,6 +118,15 @@ manage_player_flags :: proc(player: ^Player, delta: f32) {
 	}
 }
 
+player_dive :: proc(player: ^Player) {
+	if player.state in AIRBORNE_STATE_SET &&
+	   is_action_buffered(.Kick) &&
+	   .Jump_Propulsion not_in player.flags {
+		add_player_flag(.Dive_Initiate)
+		consume_action(.Kick)
+	}
+}
+
 player_jump :: proc(player: ^Player) {
 	if is_action_buffered(.Jump) {
 		if .Grounded in player.flags {
@@ -117,6 +138,8 @@ player_jump :: proc(player: ^Player) {
 				player.velocity.y = calculate_jump_speed()
 			}
 			add_player_flag(.Jump_Propulsion, 0.25)
+			consume_action(.Jump)
+			consume_action(.Kick)
 		}
 	}
 }
@@ -131,16 +154,22 @@ apply_player_gravity :: proc(player: ^Player, delta: f32) {
 
 update_player_velocity :: proc(player: ^Player, delta: f32) {
 	// Lateral
-	if player.move_delta != VEC0 {
-		forward_velo :=
-			player.forward *
-			((MAX_SPEED + (MAX_SPEED * 0.75 * player.slope)) *
-					(1 - (player.flag_timers[.Run_Startup] / 2)))
-		player.velocity.x = forward_velo.x
-		player.velocity.z = forward_velo.z
+	if player.state == .Diving {
+	} else if player.state == .Sliding {
+		player.velocity.x *= SLIDING_DECEL
+		player.velocity.z *= SLIDING_DECEL
 	} else {
-		player.velocity.x *= P_DECEL
-		player.velocity.z *= P_DECEL
+		if player.move_delta != VEC0 {
+			forward_velo :=
+				player.forward *
+				((MAX_SPEED + (MAX_SPEED * 0.75 * player.slope)) *
+						(1 - (player.flag_timers[.Run_Startup] / 2)))
+			player.velocity.x = forward_velo.x
+			player.velocity.z = forward_velo.z
+		} else {
+			player.velocity.x *= RUNNING_DECEL
+			player.velocity.z *= RUNNING_DECEL
+		}
 	}
 	// Vertical
 	if player.state == .Rising {
