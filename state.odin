@@ -93,9 +93,9 @@ handle_player_state_transitions :: proc(player: ^Player) {
 		if player.prev_state in TRIPPLE_JUMP_SET {
 			// Nuthin yet
 		} else if player.prev_state in DOUBLE_JUMP_SET {
-			add_player_flag(.Tripple_Jump, 0.2)
+			add_player_flag(.Tripple_Jump, 0.4)
 		} else {
-			add_player_flag(.Double_Jump, 0.2)
+			add_player_flag(.Double_Jump, 0.4)
 		}
 	}
 

@@ -136,8 +136,8 @@ player_jump :: proc(player: ^Player) {
 				player.velocity.y = calculate_double_jump_speed()
 			} else {
 				player.velocity.y = calculate_jump_speed()
+				add_player_flag(.Jump_Propulsion, 0.25)
 			}
-			add_player_flag(.Jump_Propulsion, 0.25)
 			consume_action(.Jump)
 			consume_action(.Kick)
 		}
@@ -167,8 +167,10 @@ update_player_velocity :: proc(player: ^Player, delta: f32) {
 			player.velocity.x = forward_velo.x
 			player.velocity.z = forward_velo.z
 		} else {
-			player.velocity.x *= RUNNING_DECEL
-			player.velocity.z *= RUNNING_DECEL
+			if .Grounded in player.flags {
+				player.velocity.x *= RUNNING_DECEL
+				player.velocity.z *= RUNNING_DECEL
+			}
 		}
 	}
 	// Vertical
