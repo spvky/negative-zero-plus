@@ -25,8 +25,8 @@ Player :: struct {
 	flag_timers:     [Player_Flag]f32,
 	shadow_position: Vec3,
 	shadow_distance: f32,
-	animation_index: int,
-	animation_frame: int
+	animation_index: i32,
+	animation_frame: i32,
 }
 
 make_player :: proc(translation: Vec3) -> (player: Player) {
@@ -185,7 +185,7 @@ update_player_velocity :: proc(player: ^Player, delta: f32) {
 	}
 }
 
-apply_player_velocity :: prc(player: ^Player, delta: f32) {
+apply_player_velocity :: proc(player: ^Player, delta: f32) {
 	player.translation += player.velocity * delta
 }
 

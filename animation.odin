@@ -7,6 +7,5 @@ import rl "vendor:raylib"
 update_player_animations :: proc() {
 	player := &world.player
 	animation := assets.player_animations[player.animation_index]
-	player.animation_frame
-	rl.UpdateModelAnimation(assets.player, animation, player.animation_frame)
+	rl.UpdateModelAnimation(assets.player, animation, i32(player.animation_frame))
 }
