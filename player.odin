@@ -25,6 +25,7 @@ Player :: struct {
 	flag_timers:     [Player_Flag]f32,
 	shadow_position: Vec3,
 	shadow_distance: f32,
+	animation_timer: f32,
 	animation_index: i32,
 	animation_frame: i32,
 }
@@ -69,6 +70,7 @@ update_player :: proc() {
 	manage_player_state(player)
 	handle_player_state_transitions(player)
 	manage_player_flags(player, delta)
+	update_player_animations(player, delta)
 }
 
 update_player_orientation :: proc(player: ^Player, delta: f32) {
@@ -252,7 +254,11 @@ resolve_player_level_collision :: proc(player: ^Player, collision: Collision) {
 
 draw_player :: proc() {
 	player := &world.player
-	rl.DrawSphere(player.translation, 0.5, rl.PINK)
+	// rl.DrawSphere(player.translation, 0.5, rl.PINK)
+	degree_rotation := math.to_degrees(player.rotation)
+
+	rl.DrawModelEx(assets.player, player.translation, VECY, degree_rotation, 1, rl.WHITE)
+
 
 	forward_point := player.translation + (player.forward * 2)
 	rl.DrawLine3D(player.translation, forward_point, rl.RED)
