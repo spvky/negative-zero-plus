@@ -39,6 +39,7 @@ make_camera :: proc() -> Camera {
 		min_y_offset = 2.5,
 		current_y_offset = 2.5,
 		smoothing = 10,
+		mode = .Dynamic,
 	}
 }
 
@@ -57,6 +58,7 @@ update_camera_position :: proc() {
 			camera.target_angle += ROT_SEGMENT
 		}
 	case .Dynamic:
+		camera.target_angle = -player.rotation - (2 * ROT_SEGMENT)
 	case .FreeRotate:
 		if rl.IsKeyDown(.LEFT) {
 			shift -= 1
