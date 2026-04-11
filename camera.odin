@@ -39,7 +39,7 @@ make_camera :: proc() -> Camera {
 		min_y_offset = 2.5,
 		current_y_offset = 2.5,
 		smoothing = 10,
-		mode = .Dynamic,
+		mode = .Octal,
 	}
 }
 
